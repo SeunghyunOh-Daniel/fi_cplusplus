@@ -21,6 +21,7 @@ void printBinary(int input)
 }
 int makeserialf(int number)
 {
+    if(number > 32)return 0;
     int finalNum = 0;
     int calNum = 1;
     for (int i = 0; i < number; i++)
