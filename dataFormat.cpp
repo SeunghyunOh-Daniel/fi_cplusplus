@@ -49,32 +49,57 @@ int power(int base, int exponent)
     }
     return x;
 }
+
 int fi(double number, int integer, int fractional)
 {
+
     int multi2Fractional = power(2, fractional);
     int multi2Number = power(2, integer + fractional);
+
+#ifdef DEBUG_FI
+    printf("-----------------------------------------------------\n");
+    printf("number %f m%db%d\n", number, integer, fractional);   
+    printf("2**(%d) = Fractional %d, 2**(%d+%d) = number %d, number * multi2Fractional = %f\n",fractional, multi2Fractional, integer, fractional, multi2Number,  number * multi2Fractional);
+#endif
+    
     if ((multi2Fractional == -1) || (multi2Number) == -1)return (power(2, integer - 1)-1);
+
     if (number > power(2, integer-1))
     {
         printf("ERROR;NUM, value %f < %d\n",number, power(2, integer - 1));
         return power(2, integer - 1);
     }
-
-    if (number == 0)
-    {
-        return 0;
-    }
-    if (number > 0)
-    {
-        //printf("+ Change to: %d\n", int(number * power(2, integer)));
-        return (int(number * multi2Fractional));
-    }
     else
     {
-        //printf("- Change to: %d\n", int(power(2, integer+fractional) + number * power(2, integer)));
-        return (multi2Number + number * multi2Fractional);
+        if (number == 0)
+        {
+            return 0;
+        }
+        else if (number > 0)
+        {
+
+#ifdef DEBUG_FI
+            printf("m%db%d + Change to: %f -> %d\n", integer, fractional, number, int(number * multi2Fractional));
+            if(integer==8)printf("Original %d\n",getm8b8(number));
+            if(integer==16)printf("Oirignal %d\n",getm16b8(number));
+            printf("----------------------------------------------------\n");
+#endif
+            return int(number * multi2Fractional);
+        }
+        else
+        {
+
+#ifdef DEBUG_FI
+            printf("m%db%d - Change to: %f -> %d\n", integer, fractional, number, int(multi2Number + number * multi2Fractional));
+            if(integer==8)printf("Original %d\n",getm8b8(number));
+            if(integer==16)printf("Oirignal %d\n",getm16b8(number));
+            printf("-----------------------------------------------------\n");
+#endif
+            return int(multi2Number + number * multi2Fractional);
+        }
     }
 }
+
 //for signed value
 int getm8b8(double x)
 {
