@@ -4,7 +4,10 @@
 #include <stdio.h>
 #include <iostream>
 #include <inttypes.h>
-
+void test();
+int len(char* text);
+char* split(char* text, char character);
+bool is_Littleendian();
 int makeserialf(int number);
 /*-------------------------------------------------------------------------------------
 Name : 

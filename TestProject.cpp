@@ -150,5 +150,70 @@ int main()
 		 }
 	}
 #endif
-    return 0;
+
+#ifdef DATAFORMAT_TEST_2
+	int max_count = TEST_CASE;
+	int count = 0;
+	int sign = 0;
+
+	while (count < max_count)
+	{
+		double x = 0.0;
+		double y = 0.0;
+		// rand 0-32767
+		//srand((unsigned int)time(0));
+		double nRandom_integer_x = 1-count;
+		double nRandom_fractional_x = (rand() % 127) / 127.0;
+
+		double nRandom_integer_y = 1-count;
+		double nRandom_fractional_y = (rand() % 32767) / 32767.0;
+
+		double resolution = round(1.0 / 255.0 * power(10, 7)) / power(10, 7);
+
+		if (sign == 0)
+		{
+			x = nRandom_integer_x + nRandom_fractional_x;
+			y = nRandom_integer_y + nRandom_fractional_y;
+			if (count > trunc(max_count / 2))sign++;
+		}
+		else
+		{
+			x = -1.0 * (nRandom_integer_x + nRandom_fractional_x);
+			y = -1.0 * (nRandom_integer_y + nRandom_fractional_y);
+		}
+
+		int m8b8 = fi(x, 8, 8);
+		int m16b8 = fi(y, 16, 8);
+
+		int m8b8_comp = getm8b8(x);
+		int m16b8_comp = getm16b8(y);
+		if ((m8b8 != m8b8_comp) || (m16b8 != m16b8_comp))printf("ERROR: fi\n");
+		//printf("%d %d, %d %d\n", m8b8, m8b8_comp, m16b8, m16b8_comp);
+
+		double m8b8_trans = translatefi(m8b8, 8, 8);
+		double m16b8_trans = translatefi(m16b8, 16, 8);
+
+		if ((abs(x - m8b8_trans) < resolution) && (abs(y - m16b8_trans) < resolution))
+		{
+			printf("time: %d value: m8b8 %f, m16b8 %f\n", count, x, y);
+			count++;
+			if (count == max_count)printf("DONE\n");
+			continue;
+		}
+		else
+		{
+			printf("ERROR : time: %d #m8b8: value %f -> %f ,#m16b8: value %f -> %f\n", count, x, m8b8_trans, y, m16b8_trans);
+			break;
+		}
+	}
+#endif
+	//is_Littleendian();
+	//test();
+	char text[] = "abddcf";
+	char a = 0;
+	a = 'c';
+	//printf("%s", text);
+	printf("%s", split(text, 'c'));
+	//char* split(char* text, char* character, int textsize)
+	return 0;
 }

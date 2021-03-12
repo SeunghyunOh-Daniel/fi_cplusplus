@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <iostream>
 #include <inttypes.h>
+#include <iomanip>
+
 #include "config.h"
 
 void printBinary(int input)
@@ -51,52 +53,95 @@ int power(int base, int exponent)
     return x;
 }
 
+//int fi(double number, int integer, int fractional)
+//{
+//
+//    int multi2Fractional = power(2, fractional);
+//    int multi2Number = power(2, integer + fractional);
+//
+//#ifdef DEBUG_FI
+//    printf("-----------------------------------------------------\n");
+//    printf("number %f m%db%d\n", number, integer, fractional);   
+//    printf("2**(%d) = Fractional %d, 2**(%d+%d) = number %d, number * multi2Fractional = %f\n",fractional, multi2Fractional, integer, fractional, multi2Number,  number * multi2Fractional);
+//#endif
+//    
+//    if ((multi2Fractional == -1) || (multi2Number) == -1)return (power(2, integer - 1)-1);
+//
+//    if (number > power(2, integer-1))
+//    {
+//        printf("ERROR;NUM, value %f < %d\n",number, power(2, integer - 1));
+//        return power(2, integer - 1);
+//    }
+//    else
+//    {
+//        if (number == 0)
+//        {
+//            return 0;
+//        }
+//        else if (number > 0)
+//        {
+//
+//#ifdef DEBUG_FI
+//            printf("m%db%d + Change to: %f -> %d\n", integer, fractional, number, int(number * multi2Fractional));
+//            if(integer==8)printf("Original %d\n",getm8b8(number));
+//            if(integer==16)printf("Oirignal %d\n",getm16b8(number));
+//            printf("----------------------------------------------------\n");
+//#endif
+//            return int(number * multi2Fractional);
+//        }
+//        else
+//        {
+//
+//#ifdef DEBUG_FI
+//            printf("m%db%d - Change to: %f -> %d\n", integer, fractional, number, int(multi2Number + number * multi2Fractional));
+//            if(integer==8)printf("Original %d\n",getm8b8(number));
+//            if(integer==16)printf("Oirignal %d\n",getm16b8(number));
+//            printf("-----------------------------------------------------\n");
+//#endif
+//            return int(multi2Number + number * multi2Fractional);
+//        }
+//    }
+//}
+
+
 int fi(double number, int integer, int fractional)
 {
-
-    int multi2Fractional = power(2, fractional);
-    int multi2Number = power(2, integer + fractional);
-
-#ifdef DEBUG_FI
-    printf("-----------------------------------------------------\n");
-    printf("number %f m%db%d\n", number, integer, fractional);   
-    printf("2**(%d) = Fractional %d, 2**(%d+%d) = number %d, number * multi2Fractional = %f\n",fractional, multi2Fractional, integer, fractional, multi2Number,  number * multi2Fractional);
-#endif
-    
-    if ((multi2Fractional == -1) || (multi2Number) == -1)return (power(2, integer - 1)-1);
-
-    if (number > power(2, integer-1))
+    if ((integer > 16) || (fractional > 8) || ((integer + fractional) > 24))
     {
-        printf("ERROR;NUM, value %f < %d\n",number, power(2, integer - 1));
-        return power(2, integer - 1);
+        printf("error::value:DataFormat::fi\n");
+        return 32768;
     }
     else
     {
-        if (number == 0)
-        {
-            return 0;
-        }
-        else if (number > 0)
-        {
+        int multi2Fractional = power(2, fractional);
+        int multi2Number = power(2, integer + fractional);
 
-#ifdef DEBUG_FI
-            printf("m%db%d + Change to: %f -> %d\n", integer, fractional, number, int(number * multi2Fractional));
-            if(integer==8)printf("Original %d\n",getm8b8(number));
-            if(integer==16)printf("Oirignal %d\n",getm16b8(number));
-            printf("----------------------------------------------------\n");
-#endif
-            return int(number * multi2Fractional);
+        if ((multi2Fractional == -1) || (multi2Number) == -1)
+        {
+            printf("error::value:DataFormat::fi\n");
+            return 32768;
+        }
+        else if ((number > power(2, integer - 1)) || (number < -1 * power(2, integer - 1)))
+        {
+            printf("error::value:DataFormat::fi\n");
+            return 32768;
         }
         else
         {
-
-#ifdef DEBUG_FI
-            printf("m%db%d - Change to: %f -> %d\n", integer, fractional, number, int(multi2Number + number * multi2Fractional));
-            if(integer==8)printf("Original %d\n",getm8b8(number));
-            if(integer==16)printf("Oirignal %d\n",getm16b8(number));
-            printf("-----------------------------------------------------\n");
-#endif
-            return int(multi2Number + number * multi2Fractional);
+            if (number == 0)
+            {
+                return 0;
+            }
+            else if (number > 0)
+            {
+                int temp = trunc(number * multi2Fractional);
+                return temp;
+            }
+            else
+            {
+                int temp = trunc(multi2Number + number * multi2Fractional);
+                return temp;
+            }
         }
     }
 }
@@ -240,63 +285,226 @@ double translatem16b8(int x)
         return -integer + ((fraction) / 255.0);
     }
 }
+//
+//double translatefi(int x, int integer, int fractional)
+//{
+//    int mask;
+//    int sign = 0;
+//    mask = 1 << (integer + fractional - 1);
+//    sign = x & mask ? 1 : 0;
+//
+//    int refFractional = makeserialf(fractional);
+//    int refInteger = makeserialf(integer);
+//
+//    double fractionLocal = x & (refFractional);
+//    double integerLocal = (x >> fractional) & (refInteger);
+//
+//    double numerator = fractionLocal;
+//    double denominator = power(2, fractional) - 1;
+//    double fractionalFinal = numerator / denominator;
+//    double numberFinal = 0.0;
+//
+//#ifdef DEBUG
+//    printf("fi\n");
+//    if (sign == 0)printf("number is positive\n");
+//    else
+//    {
+//        printf("number is negative\n");
+//    }
+//    printf("original: ");
+//    printBinary(x);
+//    printf("fractional: ");
+//    printBinary(fractionLocal);
+//    printf("integer: %f\n", integerLocal);
+//    printBinary(integerLocal);
+//
+//    printf("fractionalFinal: ");
+//    printf("%f\n", fractionalFinal);
+//#endif
+//
+//    if (x == 0)return 0;
+//    else if (sign == 0) {
+//        if (fractionLocal > (power(2, fractional)-1))
+//        {
+//            printf("ERROR: fraction number > 255\n");
+//            return 0;
+//        }
+//
+//        numberFinal = integerLocal + fractionalFinal;
+//        return numberFinal;
+//    }
+//    else
+//    {
+//        integerLocal = power(2, integer) - integerLocal;
+//        if (fractionLocal > power(2, fractional)-1)
+//        {
+//            printf("ERROR: fraction number > 255\n");
+//            return 0;
+//        }
+//        numberFinal = -integerLocal + fractionalFinal;
+//        return numberFinal;
+//    }
+//}
+
 
 double translatefi(int x, int integer, int fractional)
 {
-    int mask;
-    int sign = 0;
-    mask = 1 << (integer + fractional - 1);
-    sign = x & mask ? 1 : 0;
-
-    int refFractional = makeserialf(fractional);
-    int refInteger = makeserialf(integer);
-
-    double fractionLocal = x & (refFractional);
-    double integerLocal = (x >> fractional) & (refInteger);
-
-    double numerator = fractionLocal;
-    double denominator = power(2, fractional) - 1;
-    double fractionalFinal = numerator / denominator;
-    double numberFinal = 0.0;
-
-#ifdef DEBUG
-    printf("fi\n");
-    if (sign == 0)printf("number is positive\n");
-    else
+    if ((integer > 16) || (fractional > 8) || ((integer + fractional) > 24))
     {
-        printf("number is negative\n");
-    }
-    printf("original: ");
-    printBinary(x);
-    printf("fractional: ");
-    printBinary(fractionLocal);
-    printf("integer: %f\n", integerLocal);
-    printBinary(integerLocal);
-
-    printf("fractionalFinal: ");
-    printf("%f\n", fractionalFinal);
-#endif
-
-    if (x == 0)return 0;
-    else if (sign == 0) {
-        if (fractionLocal > (power(2, fractional)-1))
-        {
-            printf("ERROR: fraction number > 255\n");
-            return 0;
-        }
-
-        numberFinal = integerLocal + fractionalFinal;
-        return numberFinal;
+        printf("error::value:DataFormat::fi\n");
+        return 32768;
     }
     else
     {
-        integerLocal = power(2, integer) - integerLocal;
-        if (fractionLocal > power(2, fractional)-1)
-        {
-            printf("ERROR: fraction number > 255\n");
-            return 0;
+        int mask;
+        int sign = 0;
+        mask = 1 << (integer + fractional - 1);
+        sign = x & mask ? 1 : 0;
+
+        int refFractional = makeserialf(fractional);
+        int refInteger = makeserialf(integer);
+
+        double fractionLocal = x & (refFractional);
+        double integerLocal = (x >> fractional) & (refInteger);
+
+        double numerator = fractionLocal;
+        double denominator = power(2, fractional) - 1;
+        double fractionalFinal = numerator / denominator;
+        double numberFinal = 0.0;
+
+        if (x == 0)return 0;
+        else if (sign == 0) {
+            if (fractionLocal > (power(2, fractional) - 1))
+            {
+                printf("error::value:DataFormat::translatefi\n");
+                return 0;
+            }
+
+            numberFinal = integerLocal + fractionalFinal;
+            return numberFinal;
         }
-        numberFinal = -integerLocal + fractionalFinal;
-        return numberFinal;
+        else
+        {
+            integerLocal = power(2, integer) - integerLocal;
+            if (fractionLocal > power(2, fractional) - 1)
+            {
+                printf("error::value:DataFormat::translatefi\n");
+                return 0;
+            }
+            numberFinal = -integerLocal + fractionalFinal;
+            return numberFinal;
+        }
     }
+}
+
+bool is_Littleendian()
+{
+
+    int testNumber = 0x12345678;
+    uint8_t* temp = (uint8_t*)malloc(sizeof(uint8_t) * 4);
+    if (temp == 0)return NULL;
+    memset(temp, 0, sizeof(uint8_t) * 4);
+
+    uint8_t* tempValue = (uint8_t*)&testNumber;
+    for (uint8_t i = 0; i < 4; i++)temp[i] = tempValue[i];
+
+    if ((temp[0] == 0x78) && (temp[1] == 0x56) && (temp[2] == 0x34) && (temp[3] == 0x12))
+    {
+        free(temp);
+        return 1;
+    }
+    else
+    {
+        free(temp);
+        return 0;
+    }
+}
+
+int len(char* text)
+{
+    unsigned int len = 0;
+    int max = 2048;
+
+    char* tmpData = (char*)malloc(sizeof(char) * max);
+    if (tmpData == 0)return -1;
+    memset(tmpData, 0, sizeof(char) * max);
+    sprintf(tmpData, "%s", text);
+    for (uint8_t i = 0; i < max; i++)
+    {
+        if (tmpData[i] == 0)break;
+        len++;
+        if (i == max - 1)len = -1;
+    }
+
+    free(tmpData);
+    if (len < 0)return -1;
+    return len;
+}
+
+int convert_endian(int number)
+{
+    int numberLocal = number;
+    uint8_t* temp;
+    temp = (uint8_t*)&numberLocal;
+
+    int resultNumber = 0;
+    uint8_t* tempResult;
+    tempResult = (uint8_t*)&resultNumber;
+
+    for (uint8_t i = 0; i < 4; i++)tempResult[i] = temp[3 - i];
+   
+    return resultNumber;
+}
+
+char* split(char* text, char character)
+{
+    int max = 500;
+
+    char* tmpData = (char*)malloc(sizeof(char) * max);
+    if (tmpData == 0)return 0;
+    memset(tmpData, 0, sizeof(char) * max);
+    sprintf(tmpData, "%s", text);
+
+    char* name = (char*)malloc(sizeof(char) * max);
+    if (name == 0)
+    {
+        free(tmpData);
+        return 0;
+    }
+    memset(name, 0, sizeof(char) * max);
+
+    char* buf = (char*)malloc(sizeof(char) * 2);
+    if (buf == 0)
+    {
+        free(tmpData);
+        free(name);
+        return 0;
+    }
+    memset(buf, 0, 2);
+
+    int lengthData = len(tmpData);
+    if (lengthData == -1)return 0;
+    for (uint8_t i = 0; i < lengthData; i++)
+    {
+        char temp = tmpData[i];
+        if (temp == character)break;
+        if (tmpData[i] == 0)break;
+
+        name[i] = temp;
+    }
+
+    free(buf);
+    free(tmpData);
+    return name;
+}
+
+void test()
+{
+    double x = 97.8125;
+    uint8_t* temp;
+    temp = (uint8_t*)&x;
+    //printf("%d, %d",sizeof(x), sizeof(*temp));
+    for (uint8_t i = 8; i > 0; i--)printf("%X ",temp[i]);
+    //printf("%f", x);
+    //0x003c3f5d95baff44
 }
